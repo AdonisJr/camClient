@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import SVGSpin from "../assets/spinner.svg";
 
-const LoadingButton = ({ onClick, isLoading, text }) => {
+const LoadingButton = ({ onClick, isLoading, text, size }) => {
   return (
     <button
       type="submit"
       onClick={onClick}
-      className={`bg-blue-500 text-white py-2 px-4 rounded focus:outline-none flex gap-2 justify-center items-center ${
+      className={`bg-blue-500 text-white py-2 px-4 rounded focus:outline-none flex gap-2 justify-center items-center ${size} ${
         isLoading ? "opacity-50 cursor-not-allowed" : ""
       }`}
       disabled={isLoading}
@@ -25,7 +25,7 @@ const LoadingButton = ({ onClick, isLoading, text }) => {
         />
         <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
       </svg>
-      Sign Up
+      {text}
     </button>
   );
 };

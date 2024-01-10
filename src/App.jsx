@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Cookies from "universal-cookie";
 import "./App.css";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
-import Header from "./components/Header";
 import { useNavigate } from "react-router-dom";
-import ReportTracker from "./components/crime/ReportTracker";
-import Officer from "./components/officer/Officer";
-import PersonOfConcern from "./components/wanted/WantedPerson";
+import Header from "./components/Header";
+import ReportWanted from "./components/client/ReportWanted";
+import ReportCrime from "./components/client/ReportCrime";
+import ReportMissing from "./components/client/ReportMissing";
+import Gmap from "./components/client/Gmap";
 import io from "socket.io-client";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import notificationSound from './assets/notificationsound.mp3';
+
 const socket = io.connect("http://localhost:3001");
 
 function App() {
@@ -16,10 +21,34 @@ function App() {
   const navigate = useNavigate();
   const [accessToken, setAccessToken] = useState("");
   const [user, setUser] = useState({});
-  const [activePage, setActivePage] = useState("");
-  const [crimes, setCrimes] = useState("");
+  const [activePage, setActivePage] = useState("home");
+  const [person, setPerson] = useState("");
   const date = new Date();
   const currentDate = date.toISOString().slice(0, 10);
+  const [crimes, setCrimes] = useState("");
+  const [history, setHistory] = useState({});
+  const [message, setMessages] = useState();
+  const prevMessagesRef = useRef([]);
+  // handle FUNCTIONS
+
+  const handleActivePage = (page) => {
+    setActivePage(page);
+  };
+
+  // GET FUNCTIONS
+
+  const getHistory = async () => {
+    await axios
+      .get(`/history?officer_id=${user.id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        console.log(res.data.data)
+        setHistory(res.data.data);
+      });
+  };
 
   const getCrimes = async () => {
     await axios
@@ -29,26 +58,9 @@ function App() {
         },
       })
       .then((res) => {
-        console.log("wewe");
         setCrimes(res.data.data);
       });
   };
-  socket.on("receive_message", (socket) => {
-    getCrimes();
-  });
-
-  // WEB SOCKET
-  useEffect(() => {
-    
-    getCrimes();
-  }, []);
-
-  // handle FUNCTIONS
-
-  const handleActivePage = (page) => {
-    setActivePage(page);
-  };
-
   // SET USER / LOGGED IN
 
   useEffect(() => {
@@ -57,73 +69,89 @@ function App() {
       if (cookies.get("user")) {
         const token = cookies.get("user");
         const decoded = jwt_decode(token.data);
-
         await axios
-          .get(`/officer/?id=${decoded.id}`, {
+          .get(`/user/?id=${decoded.id}`, {
             headers: {
               Authorization: `Bearer ${token.data}`,
             },
           })
           .then((res) => {
-            setUser(res.data.data);
+            if (res.data.data[0].role === "admin") return navigate("/admin");
+            setUser(res.data.data[0]);
           });
         setAccessToken(token.data);
       }
     };
     getUser();
+    getCrimes();
   }, []);
+  useEffect(() => {
+    if (user.id) {
+      getHistory();
+    }
+  }, [user])
+
+
+  // SOCKET
+  useEffect(() => {
+    // Listen for messages from the server
+    socket.on('receive_message', (message) => {
+
+      // Display a toast notification when a new message arrives with a 5-minute duration
+      toast.warning(
+        `Crime Awareness: ${message.message}`,
+        {
+          autoClose: 8000, // 5 minutes in milliseconds
+          icon: '🚨',
+        }
+      );
+
+      // Play the notification sound only in response to user interaction
+      playNotificationSound();
+
+    });
+
+    // return () => {
+    //   socket.disconnect();
+    // };
+  }, []);
+  
+  const playNotificationSound = () => {
+    // Create a new Audio object and play the notification sound
+    const audio = new Audio(notificationSound);
+    if (audio.play && typeof audio.play === 'function') {
+      audio.play().catch((error) => {
+        console.error('Autoplay failed:', error);
+      });
+    }
+  };
 
   return (
-    <main className="flex flex-col min-h-screen max-w-screen bg-slate-200">
+    <main className="flex flex-col min-h-screen max-w-screen bg-slate-200 overflow-x-hidden">
       <Header
         user={user}
-        setUser={setUser}
-        activePage={activePage}
         handleActivePage={handleActivePage}
+        setUser={setUser}
         setAccessToken={setAccessToken}
+        accessToken={accessToken}
       />
-
       {!accessToken ? (
         <p className="bg-red-200 shadow-md p-2 m-2 rounded-lg text-center text-slate-500 font-bold">
           Please login to access this page.
         </p>
       ) : (
-        <div className="flex gap-2 w-full p-5">
-          <div className="flex w-5/6">
-            {activePage === "report tracker" ? (
-              <ReportTracker crimes={crimes} />
-            ) : activePage === "officer" ? (
-              <Officer accessToken={accessToken} />
-            ) : activePage === "person of concern" ? (
-              <PersonOfConcern accessToken={accessToken} />
-            ) : (
-              ""
-            )}
-          </div>
-          <div className="flex w-1/6 bg-white min-h-80 max-h-80 flex-wrap shadow-lg overflow-scroll rounded-sm">
-            <p className="sticky top-0 bg-white w-full p-2 shadow-sm text-slate-500 font-bold">
-              Reported Crimes Today
-            </p>
-            <div className="p-2">
-              {!crimes
-                ? "Loading"
-                : crimes.map((crime) => (
-                    <div
-                      key={crime.id}
-                      className={
-                        crime.created_at.split("T")[0] === currentDate
-                          ? "flex"
-                          : "hidden"
-                      }
-                    >
-                      <p>{crime.type_of_crime}</p>
-                      <p>{}</p>
-                    </div>
-                  ))}
-            </div>
-          </div>
-        </div>
+        <section className="flex flex-col p-5">
+          {activePage === "wanted" ? (
+            <ReportWanted user={user} accessToken={accessToken} history={history} />
+          ) : activePage === "crime" ? (
+            !user ? <>Loading...</>:<ReportCrime user={user} history={history} getHistory={getHistory} />
+          ) : activePage === "missing" ? (
+            <ReportMissing user={user} />
+          ) : (!crimes ? <>Loading...</> : <Gmap crimes={crimes} />)}
+
+        </section>
       )}
+      <ToastContainer />
     </main>
   );
 }

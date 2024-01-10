@@ -5,6 +5,9 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./page/Login";
 import axios from "axios";
+import Register from "./page/Register";
+import Admin from "./page/Admin";
+import "./App.css";
 
 axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
 
@@ -14,6 +17,8 @@ root.render(
     <Router>
       <Routes>
         <Route path="/signIn" element={<Login />} />
+        <Route path="/signUp" element={<Register />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/" element={< App />} />
       </Routes>
     </Router>

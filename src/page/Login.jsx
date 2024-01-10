@@ -38,7 +38,9 @@ export default function Login() {
     if (!credential.email) return showErrorMessage("Email is required");
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(credential.email))
       return showErrorMessage("Invalid email format.");
+
     setLoading(true);
+    
     await axios
       .post("/api/auth", credential)
       .then((res) => {
@@ -49,7 +51,9 @@ export default function Login() {
       })
       .catch((error) => {
         console.log(error);
-        showErrorMessage(error.response.data.error + ". " + error.response.data.message);
+        showErrorMessage(
+          error.response.data.error + ". " + error.response.data.message
+        );
         setLoading(false);
         // navigate("/");
       });
@@ -70,7 +74,7 @@ export default function Login() {
           </div>
 
           {/* <!-- Right column container --> */}
-          <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
+          <div className="mb-12 w-full md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
             <form>
               <div className="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-neutral-300 after:mt-0.5 after:flex-1 after:border-t after:border-neutral-300">
                 <p className="mx-4 mb-0 text-center font-semibold dark:text-white">
@@ -128,14 +132,15 @@ export default function Login() {
                   isLoading={loading}
                   text="LOGIN"
                   onClick={handleSubmit}
+                  size="w-full"
                 />
                 <p className="mb-0 mt-2 pt-1 text-sm">
                   {"Don't"} have account yet?
                   <a
-                    href="/log"
-                    className="text-danger ps-2 font-semibold transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700"
+                    href="/signUp"
+                    className="text-danger ps-2 font-semibold transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700 hover:underline"
                   >
-                    Registers
+                    Register
                   </a>
                 </p>
               </div>

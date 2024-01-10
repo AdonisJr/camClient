@@ -1,39 +1,74 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import io from "socket.io-client";
+const socket = io.connect("http://localhost:3001");
 
 export default function OfficerModal({
   handleModal,
   selectedOfficer,
+  accessToken
 }) {
   // CREDENTIAL'S STATE
   const [credentials, setCredentials] = useState({
-    email: selectedOfficer.email,
-    first_name: selectedOfficer.first_name,
     id: selectedOfficer.id,
+    first_name: selectedOfficer.first_name,
     last_name: selectedOfficer.last_name,
-    ranks: selectedOfficer.ranks,
+    email: selectedOfficer.email,
     phone_number: selectedOfficer.phone_number,
-    role: selectedOfficer.role,
     birth_date: selectedOfficer.birth_date,
     address: selectedOfficer.address,
+    activate: selectedOfficer.activate,
+    role: selectedOfficer.role
   });
 
-  // RANK OPTION FOR SELECT
-  const ranksOpt = [
-    { value: "Pat", label: "Pat" },
-    { value: "PCpl", label: "PCpl" },
-    { value: "PMSg", label: "PMSg" },
-    { value: "PSMS", label: "PSMS" },
-    { value: "PCMS", label: "PCMS" },
-    { value: "PEMS", label: "PEMS" },
-    { value: "PLTGEN", label: "PLTGEN" },
-  ];
+  const showErrorMessage = (message) => {
+    toast.error(message, {
+      position: toast.POSITION.TOP_LEFT,
+      autoClose: 2000,
+    });
+  };
+  const showSuccessMessage = (message) => {
+    toast.success(message, {
+      position: toast.POSITION.TOP_LEFT,
+      autoClose: 2000,
+    });
+  };
 
-  useEffect(() => {
-    console.log(credentials);
-  }, [credentials]);
+  //OPTION FOR SELECT
+  const activateOpt = [
+    { value: 1, label: "True" },
+    { value: 0, label: "False" },
+  ];
+  const roleOpt = [
+    { value: "admin", label: "admin" },
+    { value: "user", label: "user" },
+  ];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (selectedOfficer.email === "") {
+      alert("add")
+    } else {
+      await axios
+        .put(`/user?id=${credentials.id}`, credentials, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .then((res) => {
+          showSuccessMessage(res.data.message)
+          socket.emit('send_update', { message: "Hello" })
+          setTimeout(()=>{handleModal(false)}, 2000)
+        }).catch(error => {
+          showErrorMessage(error)
+        })
+    }
+  }
   return (
     <>
+      <ToastContainer />
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
         <form className="relative w-4/6 my-6 mx-auto max-w-3xl">
           {/*content*/}
@@ -54,13 +89,28 @@ export default function OfficerModal({
             </div>
             {/*body*/}
             <div className="relative w-full flex flex-col p-6 flex-auto">
+              <div className="flex w-6/6 flex-col">
+                <label className="ps-2">Email</label>
+                <input
+                  type="email"
+                  placeholder="Taylorswift@gmail.com"
+                  className="shadow-md px-3 w-full py-1 rounded-md border-2 border-slate-400"
+                  value={credentials.email}
+                  onChange={(e) =>
+                    setCredentials({
+                      ...credentials,
+                      email: e.target.value,
+                    })
+                  }
+                />
+              </div>
               {/* First Row */}
               <div className="flex gap-2">
                 <div className="flex w-3/6 flex-col">
                   <label className="ps-2">First Name</label>
                   <input
                     type="text"
-                    placeholder="Adonis"
+                    placeholder="Taylor"
                     className="shadow-md px-3 w-full py-1 rounded-md border-2 border-slate-400"
                     value={credentials.first_name}
                     onChange={(e) =>
@@ -75,7 +125,7 @@ export default function OfficerModal({
                   <label className="ps-2">Last Name</label>
                   <input
                     type="text"
-                    placeholder="Balad-on"
+                    placeholder="Swift"
                     className="shadow-md px-3 w-full py-1 rounded-md border-2 border-slate-400"
                     value={credentials.last_name}
                     onChange={(e) =>
@@ -88,31 +138,20 @@ export default function OfficerModal({
                 </div>
               </div>
               {/* Second Row */}
-              <div className="flex gap-2">
-                <div className="flex w-6/12 flex-col">
-                  <label className="ps-2">Birth Date</label>
-                  <input
-                    type="date"
-                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
-                    value={credentials.birth_date}
-                    onChange={(e) =>
-                      setCredentials({
-                        ...credentials,
-                        birth_date: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="flex w-6/12 flex-col">
-                  <label className="ps-2">Rank</label>
-                  <Select
-                  defaultValue={credentials.ranks}
-                    options={ranksOpt}
-                    onChange={(e) =>
-                      setCredentials({ ...credentials, ranks: e.value })
-                    }
-                  />
-                </div>
+              <div className="flex flex-col gap-2 w-full">
+                <label className="ps-2">Birth Date</label>
+                <input
+                  type="date"
+                  className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400 w-full"
+                  value={credentials.birth_date}
+                  onChange={(e) =>
+                    setCredentials({
+                      ...credentials,
+                      birth_date: e.target.value,
+                    })
+                  }
+                />
+
               </div>
               {/* Third Row */}
               <div className="flex gap-2">
@@ -147,6 +186,43 @@ export default function OfficerModal({
                   />
                 </div>
               </div>
+              {/* Third Row */}
+              <div className="flex gap-2">
+                <div className="flex w-6/12 flex-col">
+                  <label className="ps-2">Password</label>
+                  <input
+                    type="text"
+                    placeholder="Password"
+                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
+                    value={credentials.password}
+                    onChange={(e) =>
+                      setCredentials({
+                        ...credentials,
+                        password: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="flex w-6/12 flex-col">
+                  <label className="ps-2">Role</label>
+                  <Select
+                    defaultValue={{ label: credentials.role, value: credentials.role }}
+                    options={roleOpt}
+                    onChange={(e) =>
+                      setCredentials({ ...credentials, role: e.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="flex w-6/12 flex-col">
+                <label className="ps-2">Activate</label>
+                <Select
+                  options={activateOpt}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, activate: e.value })
+                  }
+                />
+              </div>
             </div>
             {/*footer*/}
             <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
@@ -160,6 +236,7 @@ export default function OfficerModal({
               <button
                 className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                 type="button"
+                onClick={handleSubmit}
               >
                 Save Changes
               </button>
