@@ -13,9 +13,10 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function ReportMissing({ user }) {
+export default function ReportMissing({ user, missingHistory, getMissingHistory }) {
   const [details, setDetails] = useState({
-    type: "MISSING PERSON"
+    type: "MISSING PERSON",
+    officer_id: user.id
   });
   const [loading, setLoading] = useState(false);
 
@@ -41,16 +42,36 @@ export default function ReportMissing({ user }) {
     {label: "WANTED PERSON", value: "WANTED PERSON"},
   ]
 
+  const getSpecificDate = (created_at) => {
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    };
+    const date = new Date(created_at);
+    const longDate = date.toLocaleDateString("en-US", options);
+    return longDate;
+  };
+
   const handleSubmit = async (e) =>{
     e.preventDefault();
     if (!details.type) return showErrorMessage("Please select type.")
-    console.log(details)
+    if (!details.first_name) return showErrorMessage("Please select first name.")
+    if (!details.gender) return showErrorMessage("Please select gender.")
+    
     await axios
       .post("/person", details)
       .then(async (res) => {
-        console.log(res);
         setLoading(false);
         showSuccessMessage(`${details.type} Reported Successfully.`)
+        await axios.post('/personHistory', { officer_id: user.id, type: 'missing' })
+          .then(res => console.log(res)).catch(error => console.log(error))
+          getMissingHistory();
+          setDetails({...details, first_name: "", last_name: "", gender: "", alias: "", last_known_address: ""})
       })
       .catch((error) => {
         console.log(error);
@@ -60,9 +81,9 @@ export default function ReportMissing({ user }) {
         setLoading(false);
       });
   }
-
+  console.log(missingHistory)
   return (
-    <div className="w-full justify-center items-center flex">
+    <div className="w-full justify-center flex gap-5">
     <ToastContainer />
       <form className="w-full sm:w-5/6 my-6 mx-auto ">
         {/*content*/}
@@ -105,7 +126,7 @@ export default function ReportMissing({ user }) {
                 <label className="ps-2">Gender</label>
                 <Select
                   options={genderOpt}
-                  defaultValue={{label: details.gender, value: details.gender}}
+                  value={{label: details.gender, value: details.gender}}
                   onChange={(e) =>
                     setDetails({ ...details, gender: e.value })
                   }
@@ -157,6 +178,20 @@ export default function ReportMissing({ user }) {
           </div>
         </div>
       </form>
+      <div className="w-1/6 bg-white mt-6 rounded-md p-2 max-h-96 overflow-y-scroll">
+        <p className="font-bold">Reported Missing History</p>
+
+        {
+          !missingHistory ? <>Loading...</> :
+            missingHistory.map((data) => (
+              <div className="w-full p-2 border-b-2 border-slate-300">
+                <p><span className="font-semibold">Name:</span> {data.first_name + ', ' + data.last_name}</p>
+                <p><span className="font-semibold">Alias:</span> {data.alias}</p>
+                <p><span className="font-semibold">Date:</span>  {getSpecificDate(data.created_at)}</p>
+              </div>
+            ))
+        }
+      </div>
     </div>
   );
 }

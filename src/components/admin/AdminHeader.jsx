@@ -1,7 +1,8 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
-import headDesign from "../../assets/headDesign.jpg"
+import headDesign from "../../assets/header.jpg"
+import logo from "../../assets/logo.png"
 
 export default function AdminHeader({
   user,
@@ -14,17 +15,16 @@ export default function AdminHeader({
   return (
     <header className="w-full">
       <div className="w-full relative">
+        <img src={logo} alt="Design" className="absolute top-8 left-10 w-64 rounded-lg shadow-lg" />
         <img src={headDesign} alt="Design" className="w-full" />
-        <div className="w-full absolute bottom-0 bg-neutral-700 h-10 opacity-30">
-
-        </div>
+        <div className="w-full absolute bottom-0 bg-neutral-700 h-10 opacity-30"></div>
       </div>
       <nav className="flex justify-between items-center text-white p-2 sm:p-5 gap-2 bg-neutral-900">
         <div>
           <Link to={'/'} className="hover:text-slate-200">Criminal Activity Monitoring</Link>
         </div>
 
-        {user.id ? 
+        {user.id ?
           <div className="flex gap-2 items-center">
             <p className="text-slate-300 p-3">
               {user.last_name + ", " + user.first_name}
@@ -40,7 +40,7 @@ export default function AdminHeader({
               SIGN OUT
             </button>
           </div>
-         : 
+          :
           <div className="flex gap-2 items-center text-xs font-semibold">
             <Link
               to="/signIn"

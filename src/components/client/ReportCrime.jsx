@@ -16,7 +16,7 @@ import io from "socket.io-client";
 const socket = io.connect("http://localhost:3001");
 
 
-export default function ReportCrime({ user, accessToken, history, getHistory}) {
+export default function ReportCrime({ user, accessToken, history, update, setUpdate}) {
   const [details, setDetails] = useState({
     officer_id: user.id,
     region: "Caraga Region XIII",
@@ -405,7 +405,8 @@ export default function ReportCrime({ user, accessToken, history, getHistory}) {
         setLoading(false);
         showSuccessMessage("Crime Reported Successfully.")
         socket.emit('send_report', { message: "Hello" })
-        getHistory();
+        setDetails({...details, offense: "", barangay: ""});
+        setUpdate(!update)
         await axios.post('/history', { officer_id: user.id })
           .then(res => console.log(res)).catch(error => console.log(error))
       })
@@ -467,7 +468,7 @@ export default function ReportCrime({ user, accessToken, history, getHistory}) {
               <label htmlFor="">Offense</label>
               <Select
                 options={crimeTypeOpt}
-                defaultValue={details.offense}
+                value={{label: details.offense, value: details.offense}}
                 onChange={(e) => setDetails({ ...details, offense: e.value })} />
             </div>
             <div>Address:</div>
@@ -499,6 +500,7 @@ export default function ReportCrime({ user, accessToken, history, getHistory}) {
                   <label className="ps-2">Barangay</label>
                   <Select
                     options={barangayOpt}
+                    value={{label: details.barangay, value: details.barangay}}
                     onChange={(e) =>
                       setDetails({ ...details, barangay: e.value })
                     }

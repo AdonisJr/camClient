@@ -1,7 +1,8 @@
 import React from "react";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
-import headDesign from "../assets/headDesign.jpg";
+import headDesign from "../assets/header.jpg";
+import logo from "../assets/logo.png";
 
 export default function Header({
   user,
@@ -15,6 +16,7 @@ export default function Header({
   return (
     <header className="w-full">
       <div className="w-full relative">
+        <img src={logo} alt="Design" className="absolute top-8 left-10 w-64 rounded-lg shadow-lg" />
         <img src={headDesign} alt="Design" className="w-full" />
         <div className="w-full absolute bottom-0 bg-neutral-700 h-10 opacity-30"></div>
       </div>

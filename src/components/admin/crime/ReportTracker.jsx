@@ -6,10 +6,13 @@ import LineChart from "./LineChartVisual";
 import { BarChart } from "recharts";
 import BarChartVisual from "./BarChartVisual";
 import StackedBarCharts from "./StackedBarCharts";
+import CustomTooltip from "./CustomTooltip3";
+import DataPerBarangay from "./DataPerBarangay";
 
-export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPerYear, caseStatus, casePerYear }) {
+export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPerYear, caseStatus, casePerYear, showTooltip, setTooltip }) {
   const [currentLocation, setCurrentLocation] = useState();
   const googleApi = process.env.REACT_APP_GOOGLE_API_KEY;
+  const [selected, setSelected] = useState([]);
 
 
   useEffect(() => {
@@ -33,6 +36,7 @@ export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPer
 
   return (
     <div className="flex flex-col w-full h-full gap-3 p-2 sm:p-5 rounded-smoverflow-auto">
+      
       {/* <>
         <p>CRIMES</p>
         <div>
@@ -43,18 +47,11 @@ export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPer
           />
         </div>
       </> */}
-      <div className="flex justify-evenly gap-5 w-full">
+      <div className="flex gap-5">
         {/* per brgy */}
-        <div className="w-4/12 max-h-56 bg-white shadow-md rounded-md p-3 overflow-y-scroll">
+        <div className="w-4/12 max-h-56 z-50 bg-white shadow-md rounded-md p-3 overflow-y-scroll">
           <div className="text-center w-full">
-            <p className="text-start p-2 font-bold text-slate-500">Total Cases Per Barangay</p>
-            <hr></hr>
-            {
-              !totalCasesPerBrgy ? <></> :
-                totalCasesPerBrgy.map((count) => (
-                  <p className="font-serif text-lg m-2">{count.barangay} : <span className="text-2xl font-bold">{count.total_cases}</span></p>
-                ))
-            }
+            <DataPerBarangay totalCasesPerBrgy={totalCasesPerBrgy} />
           </div>
 
         </div>
@@ -92,7 +89,7 @@ export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPer
       {/* charts */}
       <div className='flex flex-col w-full bg-white rounded-md shadow-md p-2'>
         <p className='text-start p-2 font-bold text-slate-500'>Visualizing Total Cases Across Barangays</p>
-        <BarChartVisual totalCasesPerBrgy={totalCasesPerBrgy} />
+        <BarChartVisual totalCasesPerBrgy={totalCasesPerBrgy} showTooltip={showTooltip} setTooltip={setTooltip} selected={selected} setSelected={setSelected} />
       </div>
       <div className="w-full">
         {/* LINE */}
@@ -101,13 +98,13 @@ export default function ReportTracker({ crimes, totalCasesPerBrgy, totalCasesPer
             <p className='text-start p-2 font-bold text-slate-500'>Visualizing Trends: Total Cases Over Different Dates</p>
             <LineChart crimes={crimes} totalCasesPerBrgy={totalCasesPerBrgy} totalCasesPerYear={totalCasesPerYear} caseStatus={caseStatus} />
           </div>
-          
+
         </div>
       </div>
       <div className='flex flex-col w-full bg-white rounded-md shadow-md p-2'>
-            <p className='text-start p-2 font-bold text-slate-500'>Yearly Distribution of Cases</p>
-            <StackedBarCharts casePerYear={casePerYear} />
-          </div>
+        <p className='text-start p-2 font-bold text-slate-500'>Yearly Distribution of Cases</p>
+        <StackedBarCharts casePerYear={casePerYear} />
+      </div>
 
       <div className=" bg-white ">
         {

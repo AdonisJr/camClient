@@ -13,6 +13,7 @@ import io from "socket.io-client";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import notificationSound from './assets/notificationsound.mp3';
+import ProneArea from "./components/client/ProneArea";
 
 const socket = io.connect("http://localhost:3001");
 
@@ -26,9 +27,13 @@ function App() {
   const date = new Date();
   const currentDate = date.toISOString().slice(0, 10);
   const [crimes, setCrimes] = useState("");
-  const [history, setHistory] = useState({});
+  const [history, setHistory] = useState([]);
   const [message, setMessages] = useState();
   const prevMessagesRef = useRef([]);
+  const [ totalCasesPerBrgy, setTotalCasesPerBrgy] = useState([]);
+  const [wantedHistory, setWantedHistory] = useState([])
+  const [missingHistory, setMissingHistory] = useState([])
+  const [update, setUpdate] = useState(false);
   // handle FUNCTIONS
 
   const handleActivePage = (page) => {
@@ -37,6 +42,18 @@ function App() {
 
   // GET FUNCTIONS
 
+
+  const getTotalCasesPerBrgy = async () => {
+    await axios
+      .get(`/crime/countCasesPerBrgy`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        setTotalCasesPerBrgy(res.data.data);
+      });
+  }
   const getHistory = async () => {
     await axios
       .get(`/history?officer_id=${user.id}`, {
@@ -45,8 +62,29 @@ function App() {
         },
       })
       .then((res) => {
-        console.log(res.data.data)
         setHistory(res.data.data);
+      });
+  };
+  const getWantedHistory = async () => {
+    await axios
+      .get(`/personHistory?officer_id=${user.id}&type=wanted`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        setWantedHistory(res.data.data);
+      });
+  };
+  const getMissingHistory = async () => {
+    await axios
+      .get(`/personHistory?officer_id=${user.id}&type=missing`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        setMissingHistory(res.data.data);
       });
   };
 
@@ -84,12 +122,15 @@ function App() {
     };
     getUser();
     getCrimes();
+    getTotalCasesPerBrgy();
   }, []);
   useEffect(() => {
     if (user.id) {
       getHistory();
+      getWantedHistory();
+      getMissingHistory();
     }
-  }, [user])
+  }, [user, update])
 
 
   // SOCKET
@@ -115,7 +156,7 @@ function App() {
     //   socket.disconnect();
     // };
   }, []);
-  
+
   const playNotificationSound = () => {
     // Create a new Audio object and play the notification sound
     const audio = new Audio(notificationSound);
@@ -125,9 +166,10 @@ function App() {
       });
     }
   };
+ 
 
   return (
-    <main className="flex flex-col min-h-screen max-w-screen bg-slate-200 overflow-x-hidden">
+    <main className="flex flex-col min-h-screen max-w-screen bg-slate-200 overflow-x-hidden overflow-hidden">
       <Header
         user={user}
         handleActivePage={handleActivePage}
@@ -142,12 +184,21 @@ function App() {
       ) : (
         <section className="flex flex-col p-5">
           {activePage === "wanted" ? (
-            <ReportWanted user={user} accessToken={accessToken} history={history} />
+            <ReportWanted user={user} accessToken={accessToken} wantedHistory={wantedHistory} getWantedHistory={getWantedHistory} />
           ) : activePage === "crime" ? (
-            !user ? <>Loading...</>:<ReportCrime user={user} history={history} getHistory={getHistory} />
+            !user ? <>Loading...</> : <ReportCrime user={user} history={history} getHistory={getHistory} setUpdate={setUpdate} update={update} />
           ) : activePage === "missing" ? (
-            <ReportMissing user={user} />
-          ) : (!crimes ? <>Loading...</> : <Gmap crimes={crimes} />)}
+            <ReportMissing user={user} missingHistory={missingHistory} getMissingHistory={getMissingHistory} />
+          ) : (!crimes ? <>Loading...</> :
+            <div className="flex flex-col gap-5">
+              <div className="w-full bg-white rounded-md p-2 px-5 ">
+                <ProneArea totalCasesPerBrgy={totalCasesPerBrgy}/>
+              </div>
+              <div className="w-full bg-white p-1">
+                
+                <Gmap crimes={crimes} />
+              </div>
+            </div>)}
 
         </section>
       )}

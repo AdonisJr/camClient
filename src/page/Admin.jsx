@@ -30,6 +30,7 @@ export default function Admin() {
   const [reportedCrime, setReportedCrime] = useState([]);
   const [validated, setValidated] = useState(0);
   const [q, setQ] = useState("");
+  const [showTooltip, setTooltip] = useState(false);
 
   const getCrimes = async () => {
     await axios
@@ -151,7 +152,7 @@ export default function Admin() {
     getReportedCrime();
   },[validated, q])
   return (
-    <main className="flex flex-col min-h-screen max-w-screen bg-slate-200 overflow-hidden">
+    <main className={`flex absolute flex-col w-screen bg-slate-200 max-h-screen overflow-x-hidden overflow-y-auto`}>
       <AdminHeader
         user={user}
         setUser={setUser}
@@ -169,7 +170,7 @@ export default function Admin() {
           <div className="flex gap-2 w-full p-5">
             <div className="flex w-5/6">
               {activePage === "report tracker" ? (
-                <ReportTracker casePerYear={casePerYear} caseStatus={caseStatus} totalCasesPerBrgy={totalCasesPerBrgy} totalCasesPerYear={totalCasesPerYear} crimes={crimes} accessToken={accessToken} />
+                <ReportTracker showTooltip={showTooltip} setTooltip={setTooltip} casePerYear={casePerYear} caseStatus={caseStatus} totalCasesPerBrgy={totalCasesPerBrgy} totalCasesPerYear={totalCasesPerYear} crimes={crimes} accessToken={accessToken} />
               ) : activePage === "officer" ? (
                 <Officer accessToken={accessToken} user={user} />
               ) : activePage === "person of concern" ? (
