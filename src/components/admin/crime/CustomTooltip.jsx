@@ -10,7 +10,7 @@ export default function CustomTooltip({ active, payload, label, e }) {
                 <p>{`Total Cases: ${payload[0].payload.total_cases}`}</p>
                 {
                     payload[0].payload.offenses.map((data) => (
-                        <div className="border-b-2 border-slate-200 ps-2 text-sm">
+                        <div className="border-b-1 border-slate-200 ps-2 text-xs">
                             <p><span className="font-semibold">Offence:</span> {data.offense}</p>
                             <p><span className="font-semibold"> Count:</span>  {data.count_per_barangay}</p>
                             {/* <p>{data.}</p> */}

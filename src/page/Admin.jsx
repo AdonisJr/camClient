@@ -12,6 +12,8 @@ import Upload from "../components/admin/upload/Upload";
 import ListCrimes from "../components/admin/ListCrimes";
 import CrimeList from "../components/admin/crimelist/CrimeList";
 import io from "socket.io-client";
+import Crimes from "../components/admin/crime/Crimes";
+import CrimeIndex from "../components/admin/crime/CrimeIndex";
 const socket = io.connect("http://localhost:3001");
 
 export default function Admin() {
@@ -169,7 +171,7 @@ export default function Admin() {
         ) : (
           <div className="flex gap-2 w-full p-5">
             <div className="flex w-5/6">
-              {activePage === "report tracker" ? (
+              {activePage === "Overview" ? (
                 <ReportTracker showTooltip={showTooltip} setTooltip={setTooltip} casePerYear={casePerYear} caseStatus={caseStatus} totalCasesPerBrgy={totalCasesPerBrgy} totalCasesPerYear={totalCasesPerYear} crimes={crimes} accessToken={accessToken} />
               ) : activePage === "officer" ? (
                 <Officer accessToken={accessToken} user={user} />
@@ -177,7 +179,12 @@ export default function Admin() {
                 <PersonOfConcern accessToken={accessToken} />
               ) : activePage === "upload" ? (
                 <Upload user={user} />
-              ) : activePage === "Crime List" ? <CrimeList reportedCrime={reportedCrime} handleValidated={handleValidated} setQ={setQ} /> : ""
+
+              ) : activePage === "crimes" ? (<Crimes accessToken={accessToken} />)
+
+              : activePage === "crime index" ? (<CrimeIndex accessToken={accessToken} />)
+              
+               : activePage === "Crime List" ? <CrimeList reportedCrime={reportedCrime} handleValidated={handleValidated} setQ={setQ} /> : ""
               }
             </div>
             <div className={`flex w-1/6 bg-white min-h-80 max-h-96 flex-wrap shadow-lg overflow-scroll rounded-sm ${activePage === "Crime List" ? 'hidden': ''}`}>
@@ -188,7 +195,7 @@ export default function Admin() {
               <div className="w-full px-2">
                 <p className="cursor-pointer hover:underline" onClick={(e) => handleActivePage("Crime List")}>View All</p>
               </div>
-              <div className="p-2">
+              <div className="p-2 text-xs">
                 {
                   <ListCrimes reportedCrime={reportedCrime} />}
               </div>

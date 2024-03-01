@@ -54,26 +54,30 @@ export default function CrimeList({ reportedCrime, handleValidated, setQ }) {
         } else {
             handleValidated(0)
         }
-    }, [isChecked])
+    }, [])
     return (
-        <div className='w-full bg-white max-h-screen p-5 overflow-x-scroll'>
+        <div className=' bg-white w-full h-full p-5 overflow-x-scroll text-xs'>
             {
                 isModalOpen ? <CrimeForm handleModal={handleModal} selected={selected} handleFilter={handleFilter} /> : ""
             }
             <ToastContainer />
-            <div className='p-2'>
+            <div className='py-5'>
+                <p className='text-xl font-semibold text-slate-600'>Crime List (Not Validated)</p>
+            </div>
+            {/* <div className='p-2'>
                 <p>Filter By:</p>
                 <div className='flex gap-4 ps-20'>
                     <p className=''>Validated <input type='checkbox' className='cursor-pointer' onClick={handleFilter} /></p>
                     <input type='search' placeholder='Search (Barangay or Offense)' onChange={(e) => setSearch(e.target.value)} className='w-3/6 p-2 border-2 border-slate-500' />
                     <button className='bg-blue-400 w-40 text-white cursor-pointer rounded-md hover:bg-blue-500' onClick={(e) => setQ(search)}>Search</button>
                 </div>
-            </div>
-            <table className='table-auto w-screen overflow-hidden'>
+            </div> */}
+            <table className='table-auto w-screen overflow-x-scroll'>
                 <thead className='bg-blue-50 border-2 border-slate-200 p-2'>
                     <tr className=''>
                         <th className='p-2'>Crime ID</th>
                         <th>Barangay</th>
+                        <th>Reported By</th>
                         <th>Type Place</th>
                         <th>Date Reported</th>
                         <th>Time Reported</th>
@@ -92,21 +96,22 @@ export default function CrimeList({ reportedCrime, handleValidated, setQ }) {
                     {
                         !reportedCrime ? <>Loading...</> :
                             reportedCrime.map((crime) => (
-                                <tr className='border-2 border-slate-100'>
-                                    <td className='p-2'>{crime.id}</td>
-                                    <td>{crime.barangay}</td>
-                                    <td>{crime.type_place}</td>
-                                    <td>{crime.date_reported}</td>
-                                    <td>{crime.time_reported}</td>
-                                    <td>{crime.date_committed}</td>
-                                    <td>{crime.time_committed}</td>
-                                    <td>{crime.stages_felony}</td>
-                                    <td>{crime.offense}</td>
-                                    <td>{crime.case_status}</td>
-                                    <td>{crime.latitude}</td>
-                                    <td>{crime.longitude}</td>
-                                    <td>{crime.validated}</td>
-                                    <td className='flex flex-col p-2 justify-center items-center'>
+                                <tr className='border-2 text-center border-slate-100'>
+                                    <td className='p-1'>{crime.id}</td>
+                                    <td className='p-1'>{crime.barangay}</td>
+                                    <td className='p-1'>{crime.last_name + ", " + crime.first_name}</td>
+                                    <td className='p-1'>{crime.type_place}</td>
+                                    <td className='p-1'>{crime.date_reported}</td>
+                                    <td className='p-1'>{crime.time_reported}</td>
+                                    <td className='p-1'>{crime.date_committed}</td>
+                                    <td className='p-1'>{crime.time_committed}</td>
+                                    <td className='p-1'>{crime.stages_felony}</td>
+                                    <td className='p-1'>{crime.offense}</td>
+                                    <td className='p-1'>{crime.case_status}</td>
+                                    <td className='p-1'>{crime.latitude}</td>
+                                    <td className='p-1'>{crime.longitude}</td>
+                                    <td className='p-1'><span className={`p-1 ${crime.validated ? 'bg-green-200' : 'bg-red-200'}`}>{crime.validated ? 'True': 'False'}</span></td>
+                                    <td className='flex flex-col p-1 justify-center items-center'>
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             width="16"

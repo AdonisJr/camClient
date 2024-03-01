@@ -37,7 +37,9 @@ export default function ListCrimes({ reportedCrime }) {
             {
                 !reportedCrime ? <>Loading...</> :
                     reportedCrime.map((data) => (
-                        <div key={data.id} id={`offence: ${data.offense} Date: ${getSpecificDate(data.created_at)} Address: ${data.city + ", " + data.barangay}`} className="w-full p-2 border-t-2 border-slate-300 cursor-pointer hover:underline" onClick={(e) => sendAwareness(e)}>
+                        <div key={data.id} id={`offence: ${data.offense} Date: ${getSpecificDate(data.created_at)} Address: ${data.city + ", " + data.barangay}`} 
+                        className="w-full p-2 border-t-2 border-slate-300 cursor-pointer hover:underline" 
+                        onClick={(e) => sendAwareness(e)}>
                             <p id={`offence: ${data.offense} Date: ${getSpecificDate(data.created_at)} Address: ${data.city + ", " + data.barangay}`}><span className="font-semibold">Offense:</span> {data.offense}</p>
                             <p id={`offence: ${data.offense} Date: ${getSpecificDate(data.created_at)} Address: ${data.city + ", " + data.barangay}`}><span className="font-semibold">Date:</span>  {getSpecificDate(data.created_at)}</p>
                             <p id={`offence: ${data.offense} Date: ${getSpecificDate(data.created_at)} Address: ${data.city + ", " + data.barangay}`}><span className="font-semibold">Address:</span>  {data.city + ", " + data.barangay}</p>

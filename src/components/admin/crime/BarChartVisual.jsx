@@ -27,7 +27,7 @@ export default function BarChartVisual({ totalCasesPerBrgy, showTooltip, setTool
     });
     return (
         <>
-            <BarChart width={800} height={350} data={formattedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart width={800} height={350} data={formattedData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} className='text-xs'>
 
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="barangay" tick={{ fontSize: 14 }} label={{ value: '', position: 'insideBottom', fontSize: 16 }} angle={-15} textAnchor="end" interval={0} />
