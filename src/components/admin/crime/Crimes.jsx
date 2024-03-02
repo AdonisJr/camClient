@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Pagination from './Pagination';
 import Select from 'react-select';
+import { useReactToPrint } from 'react-to-print';
 
 
 export default function Crimes({ accessToken }) {
@@ -12,6 +13,7 @@ export default function Crimes({ accessToken }) {
     const [barangay, setBarangay] = useState(null);
     const [year, setYear] = useState(null);
     const [totalCount, setTotalCount ] = useState(0);
+    const printRef = React.useRef();
 
     // SELECT OPTIONS
     const crimeTypeOpt = [
@@ -278,6 +280,22 @@ export default function Crimes({ accessToken }) {
             });
     }
 
+    const handlePrint = useReactToPrint({
+        content: () => printRef.current,
+        pageStyle: `
+            @media print {
+                /* Hide the footer */
+                @page {
+                  size: auto;
+                  margin: 20mm;
+                }
+                body {
+                  margin: 0;
+                }
+              }
+            `,
+    });
+
 
     useEffect(() => {
         getCrimes();
@@ -286,7 +304,7 @@ export default function Crimes({ accessToken }) {
         <div className='flex flex-col gap-2 w-full p-3 bg-white text-sm'>
             <div className='border-b-2 border-slate-200 p-2'>
                 <p>Filter:</p>
-                <div className='ps-10 flex gap-2'>
+                <div className='ps-10 flex items-end gap-2'>
                     <div className='flex flex-col gap-2 w-2/6'>
                         <label htmlFor="" className='ps-2'>Barangay</label>
                         <Select
@@ -313,13 +331,20 @@ export default function Crimes({ accessToken }) {
                             onChange={(e) => setYear(e.value)}
                         />
                     </div>
+                    <button className='flex gap-2 items-center hover:text-slate-600 duration-200' onClick={handlePrint}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer-fill" viewBox="0 0 16 16">
+                            <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1" />
+                            <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1" />
+                        </svg>
+                        Print
+                    </button>
                 </div>
 
             </div>
             <div className='py-2 px-2 bg-slate-100 flex items-center'>
                 <p className='font-semibold text-slate-600'>Total Cases: <span className='font-bold'>{totalCount}</span></p>
             </div>
-            <table>
+            <table ref={printRef} className='text-xs'>
                 <thead className=''>
                     <tr className=''>
                         <th className='py-5'>Crime I.D</th>
