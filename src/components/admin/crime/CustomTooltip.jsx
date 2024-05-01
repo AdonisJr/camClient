@@ -5,19 +5,16 @@ export default function CustomTooltip({ active, payload, label, e }) {
 
         return (
             // <div className="w-96 h-96 relative overflow-y-auto">
-            <div className="bg-white relative rounded-md p-2 h-auto shadow-lg z-50 overflow-y-scroll">
+            <div className="bg-white relative rounded-md p-2 h-auto shadow-lg z-50 overflow-y-scroll text-sm">
                 <p className="font-bold">{`Barangay: ${label}`}</p>
-                <p>{`Total Cases: ${payload[0].payload.total_cases}`}</p>
+                <p>Total Cases: <span className="font-bold">{payload[0].payload.total_cases}</span></p>
                 {
                     payload[0].payload.offenses.map((data) => (
-                        <div className="border-b-1 border-slate-200 ps-2 text-xs">
-                            <p><span className="font-semibold">Offence:</span> {data.offense}</p>
-                            <p><span className="font-semibold"> Count:</span>  {data.count_per_barangay}</p>
-                            {/* <p>{data.}</p> */}
+                        <div className="border-b-1 border-slate-200 ps-2">
+                            <p><span className="font-semibold">Offence:</span> {data.offense} (<span className="font-bold">6</span> cases)</p>
                         </div>
                     ))
                 }
-                Add additional data here
             </div>
 
             // </div>

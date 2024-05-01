@@ -14,6 +14,7 @@ import CrimeList from "../components/admin/crimelist/CrimeList";
 import io from "socket.io-client";
 import Crimes from "../components/admin/crime/Crimes";
 import CrimeIndex from "../components/admin/crime/CrimeIndex";
+import FirstPage from "../components/admin/crime/FirstPage";
 const socket = io.connect("http://localhost:3001");
 
 export default function Admin() {
@@ -184,7 +185,8 @@ export default function Admin() {
 
               : activePage === "crime index" ? (<CrimeIndex accessToken={accessToken} />)
               
-               : activePage === "Crime List" ? <CrimeList reportedCrime={reportedCrime} handleValidated={handleValidated} setQ={setQ} /> : ""
+               : activePage === "Crime List" ? <CrimeList reportedCrime={reportedCrime} handleValidated={handleValidated} setQ={setQ} /> : 
+               <FirstPage showTooltip={showTooltip} setTooltip={setTooltip} casePerYear={casePerYear} caseStatus={caseStatus} totalCasesPerBrgy={totalCasesPerBrgy} totalCasesPerYear={totalCasesPerYear} crimes={crimes} accessToken={accessToken}  />
               }
             </div>
             <div className={`flex w-1/6 bg-white min-h-80 max-h-96 flex-wrap shadow-lg overflow-scroll rounded-sm ${activePage === "Crime List" ? 'hidden': ''}`}>

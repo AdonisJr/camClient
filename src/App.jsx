@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Cookies from "universal-cookie";
 import "./App.css";
 import jwt_decode from "jwt-decode";
@@ -14,6 +14,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import notificationSound from './assets/notificationsound.mp3';
 import ProneArea from "./components/client/ProneArea";
+import PolygonMap from "./components/admin/crime/PolygonMap";
 
 const socket = io.connect("http://localhost:3001");
 
@@ -30,10 +31,12 @@ function App() {
   const [history, setHistory] = useState([]);
   const [message, setMessages] = useState();
   const prevMessagesRef = useRef([]);
-  const [ totalCasesPerBrgy, setTotalCasesPerBrgy] = useState([]);
+  const [totalCasesPerBrgy, setTotalCasesPerBrgy] = useState([]);
   const [wantedHistory, setWantedHistory] = useState([])
   const [missingHistory, setMissingHistory] = useState([])
   const [update, setUpdate] = useState(false);
+  const [updatedData, setUpdatedData] = useState(null);
+  const [countPerBarangay, setCountPerBarangay] = useState([]);
   // handle FUNCTIONS
 
   const handleActivePage = (page) => {
@@ -132,6 +135,46 @@ function App() {
     }
   }, [user, update])
 
+  const counts = useMemo(() => {
+    const counts = {};
+    if (updatedData) {
+      // Compute counts for each barangay
+      updatedData.forEach(crime => {
+        const { barangay, type } = crime;
+        counts[barangay] = counts[barangay] || { index: 0, nonIndex: 0 };
+        if (type === 'index') {
+          counts[barangay].index++;
+        } else if (type === 'non-index') {
+          counts[barangay].nonIndex++;
+        }
+      });
+    }
+    return counts;
+  }, [updatedData]);
+
+  // Memoized calculation of updated data list
+  const memoizedUpdatedDataList = useMemo(() => {
+    if (crimes) {
+      return crimes.map(dataItem => {
+        // Check if offense contains any of the specified keywords
+        const keywords = ['murder', 'homicide', 'physical injury', 'rape', 'robbery', 'theft', 'carnapping'];
+        const isIndexed = keywords.some(keyword => dataItem.offense.toLowerCase().includes(keyword));
+
+        // Create new object with updated data
+        return { ...dataItem, type: isIndexed ? 'index' : 'non-index' };
+      });
+    }
+
+  }, [crimes]);
+
+  useEffect(() => {
+    setCountPerBarangay(counts)
+  }, [updatedData])
+
+  useEffect(() => {
+    setUpdatedData(memoizedUpdatedDataList);
+  }, [memoizedUpdatedDataList]);
+
 
   // SOCKET
   useEffect(() => {
@@ -166,7 +209,7 @@ function App() {
       });
     }
   };
- 
+
 
   return (
     <main className="flex flex-col min-h-screen max-w-screen bg-slate-200 overflow-x-hidden overflow-hidden">
@@ -192,11 +235,60 @@ function App() {
           ) : (!crimes ? <>Loading...</> :
             <div className="flex flex-col gap-5">
               <div className="w-full bg-white rounded-md p-2 px-5 ">
-                <ProneArea totalCasesPerBrgy={totalCasesPerBrgy}/>
+                <ProneArea totalCasesPerBrgy={totalCasesPerBrgy} />
               </div>
-              <div className="w-full bg-white p-1">
-                
+              {/* <div className="w-full bg-white p-1">
+
                 <Gmap crimes={crimes} />
+              </div> */}
+              <div className='flex relative'>
+                <div className='w-full'>
+                  {
+                    !updatedData ? "" :
+                      <PolygonMap crimes={updatedData}/>
+                  }
+                </div>
+                <div className='w-56 p-2 absolute top-28 right-0 text-sm bg-black'>
+                  {Object.entries(counts).map(([barangay, { index, nonIndex }]) => (
+                    <div key={barangay}
+                      className={`flex justify-between items-center gap-2 p-1 text-xs
+                        ${barangay === 'Consuelo' ? 'bg-red-600' :
+                          barangay === 'Bunawan Brook' ? 'bg-yellow-400' :
+                            barangay === 'San Teodoro' ? 'bg-pink-300' :
+                              barangay === 'Libertad' ? 'bg-green-500' :
+                                barangay === 'San Andres' ? 'bg-orange-400' :
+                                  barangay === 'Imelda' ? 'bg-purple-600' :
+                                    barangay === 'Poblacion' ? 'bg-fuchsia-500' :
+                                      barangay === 'Mambalili' ? 'bg-teal-600' :
+                                        barangay === 'Nueva Era' ? 'bg-cyan-300'
+                                          : 'bg-blue-500'}
+                        `}>
+
+                      <p className={` text-white p-2 font-bold
+                            `}
+                      >{barangay}</p>
+                      <div className='text-white'>
+                        <p className='text-xs'>Index: <span className='font-semibold'>{index}</span></p>
+                        <p className='text-xs'>Non-Index: <span className='font-semibold'>{nonIndex}</span></p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className='flex flex-col gap-1 w-48 p-2 absolute bg-black text-white bottom-24 right-0'>
+                  <div className='flex gap-1'>
+                    {/* <input type='checkbox' onClick={(e) => setIndex(!index)} checked={index} /> */}
+                    <img src='http://localhost:3000/mark1.png' />
+                    <p>Index Crimes</p>
+
+                  </div>
+                  <div className='flex gap-1'>
+                    {/* <input type='checkbox' onClick={(e) => setNonIndex(!nonIndex)} checked={nonIndex} /> */}
+                    <img src='http://localhost:3000/mark2.png' className='w-5' />
+                    <p>Non-Index Crimes</p>
+
+                  </div>
+                </div>
+
               </div>
             </div>)}
 
