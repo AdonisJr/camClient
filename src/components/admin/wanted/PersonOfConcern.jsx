@@ -45,7 +45,7 @@ export default function PersonOfConcern({ accessToken }) {
   return (
     <div className="w-full h-full p-2 sm:p-5 shadow-lg rounded-sm bg-white">
       {
-        isModalOpen ? <PersonModal handleModal={handleModal} selected={selected} setSelected={setSelected} /> : ''
+        isModalOpen ? <PersonModal getPerson={getPerson} handleModal={handleModal} selected={selected} setSelected={setSelected} /> : ''
       }
       <div className="flex justify-between items-center">
         <p className="font-bold text-xl font-serif">WANTED PERSON</p>

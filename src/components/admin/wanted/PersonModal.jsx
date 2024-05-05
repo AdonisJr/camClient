@@ -6,13 +6,43 @@ import axios from "axios";
 import io from "socket.io-client";
 const socket = io.connect("http://localhost:3001");
 
-export default function PersonModal({ handleModal, selected, setSelected }) {
+export default function PersonModal({ handleModal, selected, setSelected, getPerson }) {
   const [credentials, setCredentials] = useState(selected);
+  const [image, setImage] = useState(null);
+  const [imgSrc, setImgSrc] = useState(null);
 
-  const typeOpt = [
-    { value: 'MISSING PERSON', label: 'MISSING PERSON' },
-    { value: 'WANTED PERSON', label: 'WANTED PERSON' },
-  ]
+  const typeOpt =
+    !selected.id ?
+      [
+        { value: 'MISSING PERSON', label: 'MISSING PERSON' },
+        { value: 'WANTED PERSON', label: 'WANTED PERSON' }
+      ]
+
+      :
+      [{ value: selected.type, label: selected.type }]
+
+  const statusOpt =
+    selected.type === 'MISSING PERSON' ?
+      [
+        { value: 'Under Investigation', label: 'Under Investigation' },
+        { value: 'Active Search', label: 'Active Search' },
+        { value: 'Public Appeal', label: 'Public Appeal' },
+        { value: 'Unresolved', label: 'Unresolved' },
+        { value: 'Located', label: 'Located' },
+        { value: 'Closed', label: 'Closed' }
+      ]
+
+      :
+      [
+        { value: 'Under Investigation', label: 'Under Investigation' },
+        { value: 'Active', label: 'Active' },
+        { value: 'Warrant Issued', label: 'Warrant Issued' },
+        { value: 'Fugitive', label: 'Fugitive' },
+        { value: 'Escaped', label: 'Escaped' },
+        { value: 'In Custody', label: 'In Custody' },
+        { value: 'Closed', label: 'Closed' }
+      ]
+
 
   const genderOpt = [
     { value: 'male', label: 'Male' },
@@ -48,34 +78,60 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
     setCredentials({ ...credentials, last_known_address: e.target.value })
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImgSrc(URL.createObjectURL(file)); // Set the image src for preview
+    } else {
+      setImgSrc(null)
+      setImage(null)
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!credentials.type) return showErrorMessage("Error, please select type.")
-    if (selected.id) {
-      await axios
-        .put(`/person?id=${credentials.id}`, credentials)
-        .then((res) => {
-          showSuccessMessage(res.data.message)
-          socket.emit('send_update', { message: "Hello" })
-          setSelected({})
-          setTimeout(() => { 
-            handleModal(false); 
-            setSelected({}) ;
-          }, 2000)
 
-        }).catch(error => {
-          showErrorMessage(error)
+    const imageData = new FormData();
+    imageData.append('image', image);
+
+    // Append other form data fields
+    Object.entries(credentials).forEach(([key, value]) => {
+      imageData.append(key, value);
+    });
+
+    try {
+      if (selected.id) {
+        const res = await axios.put(`/person?id=${credentials.id}`, imageData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         })
-    } else {
-      await axios
-        .post(`/person`, credentials)
-        .then((res) => {
-          showSuccessMessage(res.data.message)
-          socket.emit('send_update', { message: "Hello" })
-          setTimeout(() => { handleModal(false); setSelected({}) }, 2000)
-        }).catch(error => {
-          showErrorMessage(error)
+        getPerson()
+        showSuccessMessage(res.data.message)
+        setTimeout(() => {
+          handleModal(false)
+          setSelected({})
+        }, 1000)
+      } else {
+        const res = await axios.post('/person', imageData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         })
+        getPerson()
+        showSuccessMessage(res.data.message)
+        setTimeout(() => {
+          handleModal(false)
+          setSelected({})
+        }, 1000)
+      }
+
+      setImage(null)
+      setImgSrc(null)
+    } catch (error) {
+      showErrorMessage(error)
     }
   }
 
@@ -83,12 +139,12 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
     <>
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
         <ToastContainer />
-        <form className="relative w-auto my-6 mx-auto max-w-3xl">
+        <form className="relative w-3/6 my-6 mx-auto">
           {/*content*/}
           <div className="flex flex-col border-0 rounded-lg shadow-lg relative w-full bg-white outline-none focus:outline-none">
             {/*header*/}
             <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
-              <h3 className="text-2xl font-semibold">ADD WANTED PERSON</h3>
+              <h3 className="text-2xl font-semibold">{selected.id ? 'UPDATE PERSON OF CONCERN' : 'ADD PERSON OF CONCERN'}</h3>
               <button
                 className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                 onClick={() => handleModal(false)}
@@ -100,9 +156,14 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
             </div>
             {/*body*/}
             <div className="relative flex flex-col gap-4 p-6 flex-auto">
+              {/* UPLOAD */}
+              <div className="flex flex-col gap-1">
+                <img src={!imgSrc ? "http://localhost:3000/default.jpg" : imgSrc} className="w-40" />
+                <input type="file" accept="image/*" onChange={handleImageChange} />
+              </div>
               {/* First Row */}
               <div className="flex gap-2">
-                <div className="flex flex-col">
+                <div className="flex w-4/12 flex-col">
                   <label className="ps-2">First Name</label>
                   <input
                     type="text"
@@ -113,7 +174,17 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
                   />
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex w-3/12 flex-col">
+                  <label className="ps-2">Middle Name</label>
+                  <input
+                    type="text"
+                    placeholder="Swift"
+                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
+                    value={credentials.middle_name}
+                    onChange={(e) => setCredentials({ ...credentials, middle_name: e.target.value })}
+                  />
+                </div>
+                <div className="flex w-5/12 flex-col">
                   <label className="ps-2">Last Name</label>
                   <input
                     type="text"
@@ -126,13 +197,20 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
               </div>
               {/* Second Row */}
               <div className="flex gap-2">
-                <div className="flex w-6/12 flex-col">
+                <div className="flex w-4/12 flex-col">
                   <label className="ps-2">Gender</label>
                   <Select options={genderOpt} onChange={handleGenderChange} defaultValue={{ label: credentials.gender, value: credentials.gender }} />
                 </div>
                 <div className="flex w-6/12 flex-col">
                   <label className="ps-2">Type</label>
-                  <Select options={typeOpt} defaultValue={{ label: credentials.type, value: credentials.type }} onChange={(e) => setCredentials({...credentials, type: e.value})} />
+                  <Select options={typeOpt} defaultValue={{ label: credentials.type, value: credentials.type }} onChange={(e) => setCredentials({ ...credentials, type: e.value })} />
+                </div>
+                <div className="flex w-4/12 flex-col">
+                  <label className="ps-2">Status</label>
+                  <Select
+                    options={statusOpt}
+                    onChange={(e) => setCredentials({ ...credentials, status: e.value })}
+                    defaultValue={{ label: credentials.status, value: credentials.status }} />
                 </div>
               </div>
               {/* Third Row */}
@@ -148,16 +226,54 @@ export default function PersonModal({ handleModal, selected, setSelected }) {
                   />
                 </div>
               </div>
+              <div className="flex gap-2">
+                <div className="flex w-4/12 flex-col">
+                  <label className="ps-2">Alias</label>
+                  <input
+                    type="text"
+                    placeholder="Robert Baker"
+                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
+                    value={credentials.alias}
+                    onChange={(e) => setCredentials({ ...credentials, alias: e.target.value })}
+                  />
+                </div>
+                <div className="flex w-4/12 flex-col">
+                  <label className="ps-2">Height (cm)</label>
+                  <input
+                    type="text"
+                    placeholder="170"
+                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
+                    value={credentials.height}
+                    onChange={(e) => setCredentials({ ...credentials, height: e.target.value })}
+
+                  />
+                </div>
+                <div className="flex w-4/12 flex-col">
+                  <label className="ps-2">Weight (kg)</label>
+                  <input
+                    type="text"
+                    placeholder="55"
+                    className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
+                    value={credentials.weight}
+                    onChange={(e) => setCredentials({ ...credentials, weight: e.target.value })}
+
+                  />
+                </div>
+              </div>
               <div className="flex w-full flex-col">
-                <label className="ps-2">Alias</label>
+                <label className="ps-2">Remarks</label>
                 <input
                   type="text"
-                  placeholder="Robert Baker"
+                  placeholder="Write update"
                   className="shadow-md px-3 py-1 rounded-md border-2 border-slate-400"
-                  value={credentials.alias}
-                  onChange={(e) => setCredentials({ ...credentials, alias: e.target.value })}
+                  value={credentials.remarks}
+                  onChange={(e) => setCredentials({ ...credentials, remarks: e.target.value })}
+
                 />
+
               </div>
+
+
             </div>
             {/*footer*/}
             <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">

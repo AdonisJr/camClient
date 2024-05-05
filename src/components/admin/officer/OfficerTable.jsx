@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 export default function OfficerTable({ officerList, setSelectedOfficer, handleModal }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+console.log(officerList)
   const handleImageModal = (action) => {
     setIsModalOpen(action);
   };

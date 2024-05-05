@@ -34,30 +34,35 @@ export default function PersonTable({ personList, filter, handleModal, setSelect
       autoClose: 2000,
     });
   };
-  const handleDelete = async(id) =>{
+  const handleDelete = async (id) => {
     await axios
-        .delete(`/person?id=${id}`)
-        .then((res) => {
-          showSuccessMessage(res.data.message)
-          socket.emit('send_update', { message: "Hello" })
-          setSelected({})
-          handleModal(false); 
-          setSelected({});
-        }).catch(error => {
-          showErrorMessage(error)
-        })
+      .delete(`/person?id=${id}`)
+      .then((res) => {
+        showSuccessMessage(res.data.message)
+        socket.emit('send_update', { message: "Hello" })
+        setSelected({})
+        handleModal(false);
+        setSelected({});
+      }).catch(error => {
+        showErrorMessage(error)
+      })
   }
   return (
     <table className="table table-auto w-full text-sm">
-    <ToastContainer />
+      <ToastContainer />
       <thead className="bg-slate-100">
         <tr>
           <th className="p-2">I.D</th>
           <th className="p-2">First Name</th>
+          <th className="p-2">Middle Name</th>
           <th className="p-2">Last Name</th>
+          <th className="p-2">Picture</th>
           <th className="p-2">AliasLast Name</th>
           <th className="p-2">Gender</th>
           <th className="p-2">Address</th>
+          <th className="p-2">Height</th>
+          <th className="p-2">Weight</th>
+          <th className="p-2">Remarks</th>
           <th className="p-2">Type</th>
           <th className="p-2">Date Reported</th>
           <th className="p-2">Action</th>
@@ -65,13 +70,22 @@ export default function PersonTable({ personList, filter, handleModal, setSelect
       </thead>
       <tbody>
         {personList[0] ? personList[0].map((person) => (
-          <tr key={person.id} className={`text-center bg-slate-50`}>
+          <tr key={person.id} className={`text-center bg-slate-50 text-xs hover:bg-blue-50 broder-b-2 border-red-400` }>
             <td key={person.id} className="p-4">{person.id}</td>
             <td>{person.first_name}</td>
+            <td>{person.middle_name}</td>
             <td>{person.last_name}</td>
+            <td className="flex justify-center items-center">
+              <img src={person.url ? `data:image/jpeg;base64,${person.url}` : 'http://localhost:3000/default.jpg'}
+                className="w-32 rounded-md border-2 border-slate-100"
+              />
+            </td>
             <td>{person.alias}</td>
             <td>{person.gender}</td>
             <td>{person.last_known_address}</td>
+            <td>{person.height}</td>
+            <td>{person.weight}</td>
+            <td>{person.remarks}</td>
             <td>{person.type}</td>
             <td>{getSpecificDate(person.created_at)}</td>
             <td className="flex gap-2 justify-center items-center p-4">
@@ -99,7 +113,7 @@ export default function PersonTable({ personList, filter, handleModal, setSelect
               </svg>
             </td>
           </tr>
-        )):<tr></tr>}
+        )) : <tr></tr>}
       </tbody>
     </table>
   );

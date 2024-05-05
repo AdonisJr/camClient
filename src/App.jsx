@@ -76,6 +76,7 @@ function App() {
         },
       })
       .then((res) => {
+        console.log(res.data.data)
         setWantedHistory(res.data.data);
       });
   };
@@ -173,6 +174,7 @@ function App() {
 
   useEffect(() => {
     setUpdatedData(memoizedUpdatedDataList);
+    console.log(memoizedUpdatedDataList)
   }, [memoizedUpdatedDataList]);
 
 
