@@ -182,8 +182,8 @@ function App() {
   useEffect(() => {
     // Listen for messages from the server
     socket.on('receive_message', (message) => {
-
       // Display a toast notification when a new message arrives with a 5-minute duration
+      
       toast.warning(
         `Crime Awareness: ${message.message}`,
         {
@@ -192,7 +192,7 @@ function App() {
         }
       );
 
-      // Play the notification sound only in response to user interaction
+      // // Play the notification sound only in response to user interaction
       playNotificationSound();
 
     });
@@ -247,7 +247,7 @@ function App() {
                 <div className='w-full'>
                   {
                     !updatedData ? "" :
-                      <PolygonMap crimes={updatedData}/>
+                      <PolygonMap crimes={updatedData} />
                   }
                 </div>
                 <div className='w-56 p-2 absolute top-28 right-0 text-sm bg-black'>

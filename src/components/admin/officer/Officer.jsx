@@ -37,7 +37,7 @@ export default function Officer({ accessToken, user }) {
   };
   const getUser = async () => {
     axios
-      .get(`/user`, {
+      .get(`/user?filter=${user.id}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
